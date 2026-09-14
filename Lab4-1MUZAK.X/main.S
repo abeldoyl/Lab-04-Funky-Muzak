@@ -25,7 +25,7 @@
 
 ; config statements should precede project file includes.
 #include <xc.inc>
-
+count    EQU 0x20                   ;use data memory address 0x20 as an 8-bit loop counter  
 ; Reset Vector at 0000h. Execution starts here after reset.
 PSECT resetVect,class=CODE,delta=2
 ResetVector: 
@@ -37,11 +37,45 @@ PSECT code,class=CODE,delta=2
  
 Setup:
     ; add device setup here
+    ; Bank 0
+    BCF 0x03,6  ;Set Bank 0
+    BCF 0x03,5  ;Set Bank 0
+    CLRF PORTA  ;Clearing PORTA on reset
+    CLRF PORTB  ;Clearing PORTB on reset
+    
+    ; Bank 1
+    BCF 0x03,6  ;Set Bank 1
+    BSF 0x03,5  ;Set Bank 1
+    CLRF INTCON ;Set INTCON low to remove interrupt flags 
+    CLRF TRISA	;Making PORTA outputs
+    MOVLW 0xFF  ;Set TRISB high
+    MOVWF TRISB ;Set PortB as an Input
+    
+    ;Bank 3
+    BSF 0x03,6  ;Set Bank 3
+    BSF 0x03,5  ;Set Bank 3
+    CLRF ANSEL  ;Making PORTA digital I/O
+    CLRF ANSELH ;Making PORTB digital I/O
+    
+    BCF 0x03,6        ; Sets Bank 0
+    BCF 0x03,5        ; Sets Bank 0
     goto Main
     
     
 Main:
     ; main code goes here
-    goto Main
+    BTFSC PORTB,0      ;1 (2) TCY
+    goto Main	       ;1 TCY
+    
+    MOVLW 0x01	       ;1 TCY
+    XORWF PORTA,1      ;1 TCY
+    
+    MOVLW 0xA4         ;1 TCY delay overhead
+    MOVWF count        ;1 TCY delay overhead
+
+DelayLoop:
+    DECFSZ count,1     ;1(2) 1 TCY if not zero, 2 TCY if zero
+    goto DelayLoop     ;2 TCY
+    goto Main	       ;2 TCY code not part of delay
 End
     
