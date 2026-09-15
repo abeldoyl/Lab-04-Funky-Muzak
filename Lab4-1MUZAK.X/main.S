@@ -25,7 +25,7 @@
 
 ; config statements should precede project file includes.
 #include <xc.inc>
-count    EQU 0x20                   ;use data memory address 0x20 as an 8-bit loop counter  
+count    EQU 0x20         ;use data memory address 0x20 as an 8-bit loop counter  
 ; Reset Vector at 0000h. Execution starts here after reset.
 PSECT resetVect,class=CODE,delta=2
 ResetVector: 
